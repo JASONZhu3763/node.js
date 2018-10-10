@@ -51,14 +51,12 @@ app.post('/zjzjzj',function(request,response){
     });
 
     datemysql.connect();
-    const sql = ' SELECT * FROM LOGINTABLE WHERE NAME = ?';
+    const sql = ' SELECT * FROM LOGINTABLE WHERE NAME = ? ';
     const sqlparam = [request.body.name];
     console.log(sqlparam);
     datemysql.query(sql,sqlparam,function(err,result){
         if(err){
             throw err;
-            console.log(err.message);
-            return;
         }
         console.log(result.length);
         const length = Number(result.length);
@@ -74,6 +72,28 @@ app.post('/zjzjzj',function(request,response){
 
 
 });
+
+app.post('/zhuce',function(request,response){
+    const datemysql = mysql.createConnection({
+        host:'localhost',
+        user:'root',       
+        password:'123456',
+        port:'3306',         
+        database:'mysql'
+    });
+
+    datemysql.connect();
+    const sql = 'INSERT INTO LOGINTABLE VALUES(?,?)'
+    const sqlparam = [request.body.name,request.body.password];
+    datemysql.query(sql,sqlparam,function(err,result){
+        if(err){
+            throw err;
+            return;
+        } else {
+            response.end('success');
+        }
+    });
+}); 
 
 
 
