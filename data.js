@@ -1,13 +1,13 @@
-const mysql = require('mysql');
-
-const express = require("express");
-
-const app =  express();
-
-const bodyParser = require('body-parser');
-
+var getpool = require('./mysql');
+var express = require('express');
+var app =  express();
+var bodyParser = require('body-parser');
+var login = require('./Test');
+var getData = {
+    total: 0,
+    listitem:[]
+};
 app.use(bodyParser.urlencoded({ extended: false }));
-
 app.all('*',function(request,response,next){
     response.header('Access-Control-Allow-Origin','*');
     response.header('Access-Control-Allow-Headers','content-type');
@@ -19,16 +19,40 @@ app.all('*',function(request,response,next){
         next();
     }
 });
-
+app.use('/login',login);
 app.get('/',function(request,response){
-    
+    // let result = object;
     const res = {
         name: 18,
         data:request.query.data
     }
-    console.log(res);
-    
-    response.status(200).end(JSON.stringify(res));
+    let count = 0;
+    listitem=[];
+    const qazwsx = new getpool();
+    const sql="select * from wasz";
+    const sqlcount="select count(1) as num  from wasz";
+        qazwsx.then((data)=>{
+            data.connect();
+                data.query(sql,(err,result) => {
+                    try {
+                        listitem = result;
+                    } catch (error) {
+                        console.log(err);
+                    }
+                });
+                data.query(sqlcount,(err,result)=>{
+                    try {
+                        count = result[0].num;
+                        getData.total = count;
+                        getData.listitem = listitem;
+                        console.log(new Date());
+                        response.end(JSON.stringify(getData));
+                    } catch (error) {
+                        console.log(err);
+                    }
+                });
+             data.end();
+        });
 });
 
 app.post('/tempo',function(request,response){
@@ -93,12 +117,17 @@ app.post('/zhuce',function(request,response){
             response.end('success');
         }
     });
+    datemysql.end();
 }); 
 
 
 
 app.get('/kobe',(request,response) => response.send('kobe is the best!'));
 
-app.listen(3600,() => console.log('Example app listening on port 3600!'));
+var server = app.listen(3600,'0.0.0.0',() => {
+    const host = server.address().address;
+    const port = server.address().port;
+    console.log('address ',host,port);
+});
 
 
