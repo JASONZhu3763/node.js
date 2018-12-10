@@ -3,10 +3,10 @@ const mysql = require('mysql');
 const getpool = function getPool(){
    const promise =  new Promise((resolve,reject)=>{
         var pool = mysql.createConnection({
-            host: '127.0.0.1',
-            user: 'root',
-            password: '123456',
-            database: 'mysqlzj',
+            host: '10.10.15.79',
+            user: 'ytldb2017',
+            password: 'ytldb2017',
+            database: 'ytldb',
             port: 3306
         });
         resolve(pool);
