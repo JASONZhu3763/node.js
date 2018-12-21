@@ -4,6 +4,7 @@ var apiDat = express();
 var fs = require('fs');
 var xlsx = require('node-xlsx');
 var Excel = require('exceljs');
+const nodeExcel = require('excel-export');
 var bodyParser = require('body-parser');
 var getData = {
     success: '',
@@ -14,15 +15,15 @@ var name = 0;
 
 //设置　start-end　行单元格水平垂直居中/添加边框
 function rowCenter(arg_ws, arg_start, arg_end) {
-    for(i = arg_start; i <= arg_end; i++) {
+    for (i = arg_start; i <= arg_end; i++) {
         arg_ws.findRow(i).alignment = { vertical: 'middle', horizontal: 'center' };
         //循环 row 中的　cell，给每个 cell添加边框
-        arg_ws.findRow(i).eachCell( (cell, index) => {
+        arg_ws.findRow(i).eachCell((cell, index) => {
             cell.border = {
-                top: {style:'thin'},
-                left: {style:'thin'},
-                bottom: {style:'thin'},
-                right: {style:'thin'}
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
             };
         })
 
@@ -31,7 +32,7 @@ function rowCenter(arg_ws, arg_start, arg_end) {
 
 //设置　start-end 列的宽度
 function colWidth(arg_ws, arg_cols, arg_width) {
-    for(i in arg_cols) {
+    for (i in arg_cols) {
         arg_ws.getColumn(arg_cols[i]).width = arg_width;
     }
 }
@@ -76,42 +77,44 @@ apiDat.post('/', function (request, response) {
     // response.end('你是第'+name+'个访问者');
 });
 apiDat.get('/export', (request, response) => {
-    var fills = {
-        solid: { type: "pattern", pattern: "solid"}
-    };
-    var options = {
-        stream: response,
-        useStyles: true,
-        useSharedStrings: false
-    }
-    var Workbook = new Excel.stream.xlsx.WorkbookWriter(options);
-    var ws1 = Workbook.addWorksheet("测试一");
-    ws1.addRow(["你", "在", "说些", "神马", "呢？"]);
-    ws1.getCell("A1").fill = fills.solid;
-    ws1.getCell("B1").fill = fills.solid;
-    ws1.getCell("C1").fill = fills.solid;
-    ws1.getCell("D1").fill = fills.solid;
-    ws1.getCell("E1").fill = fills.solid;
-    ws1.addRow(["什么跟神马", 10, 1, "凡人修仙传", 7]);
-    ws1.addRow(["", "", "", "一号遗迹", 2]);
-    ws1.addRow(["", "", "", "六号遗迹", 0]);
-    ws1.addRow(["", "", "", "古国一号", 0]);
-    ws1.addRow(["", "", "", "锻体期", 0]);
-    ws1.addRow(["", "", "", "合体期", 0]);
-    ws1.addRow(["", "", "", "没资质", 1]);
-    ws1.mergeCells("A2:A8");
-    ws1.mergeCells("B2:B8");
-    ws1.mergeCells("C2:C8");
-    rowCenter(ws1,1,8);
-    colWidth(ws1,[1,2,3,4,5],20);
-    ws1.commit();
-    Workbook.commit().then(()=>{
-        response.end();
-    });
-    // Workbook.xlsx.writeFile('response.xlsx').then( () => {
-    //     console.log('生成 xlsx');
-    //     response.end();
-    // });
-    
+    let conf ={};
+    let exceldata=[
+        {name:"张三",age:"20",sex:"男",birthday:"1998-10-10"},
+        {name:"李四",age:"21",sex:"男",birthday:"1997-08-08"},
+        {name:"王五",age:"22",sex:"男",birthday:"1996-06-06"},
+        {name:"赵六",age:"20",sex:"男",birthday:"1998-12-12"},
+    ];
+        conf.name = "mysheet";//表格名
+        let alldata = new Array();
+        for(let i = 0;i<exceldata.length;i++){
+            let arr = new Array();
+            arr.push(exceldata[i].name);
+            arr.push(exceldata[i].age);
+            arr.push(exceldata[i].sex);
+            arr.push(exceldata[i].birthday);
+            alldata.push(arr);
+        }
+        //决定列名和类型
+        conf.cols = [{
+            caption:'姓名',
+            type:'string'
+        },{
+            caption:'年龄',
+            type:'number'
+        },{
+            caption:'性别',
+            type:'string'
+        },{
+            caption:'出生日期',
+            type:'string',
+            width:20,
+        }];
+        
+        conf.rows = alldata;//填充数据
+        let result = nodeExcel.execute(conf);
+   
+    response.setHeader('Content-Type', 'application/vnd.openxmlformats;charset=utf-8');
+    response.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+    response.end(result, 'binary');
 });
 module.exports = apiDat;
